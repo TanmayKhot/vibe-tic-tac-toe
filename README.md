@@ -110,6 +110,19 @@ This project is open source and available under the [MIT License](LICENSE).
 
 Build a webapp where I can play tic tac toe with a friend locally. You can use python for it. If the game ends up in a tie then there should be an option to reset the board. The two players could be named 'Player 1' and 'Player 2'. I dont want to use any paid services for it. If the game ends up in a tie or if one player wins then the game should show some message saying ' Player 1/2 won' or 'Game tie' and then give the user an option to play another game. The tic tac toe grid should be 3x3. The player will just click on a cell in the grid wherever they want to mark their option. The game should always begin with X and the other player will play with O
 
+## App Demo
+
+Here are some screenshots of the application in action:
+
+### Game Mode Selection
+![Game Mode Selection](imgs/game-mode.png)
+
+### Game in Progress
+![Game in Progress](imgs/game-in-progress.png)
+
+### Win Animation
+![Win Animation](imgs/win-animation.png)
+
 ## My thoughts
 What went well:
 1. Cursor did a fantastic job building the app from scratch based on the first prompt. It understood the requirements clearly and delivered exactly what I asked for, without any flaws.
