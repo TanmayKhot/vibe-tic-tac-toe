@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .game-container {
+            text-align: center;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 5px;
+            margin: 20px auto;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            background-color: white;
+            border: 2px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .cell:hover {
+            background-color: #e0e0e0;
+        }
+        .cell.X {
+            color: #ff4444;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .cell.O {
+            color: #4444ff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .status {
+            font-size: 24px;
+            margin: 20px 0;
+        }
+        .reset-button {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none;
+        }
+        .reset-button:hover {
+            background-color: #45a049;
+        }
+        .winner-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            text-align: center;
+            z-index: 1000;
+            animation: popIn 0.5s ease-out;
+        }
+        .winner-modal h2 {
+            font-size: 36px;
+            margin: 0 0 20px 0;
+            color: #333;
+        }
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        .mode-selection {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .mode-button {
+            padding: 15px 30px;
+            font-size: 18px;
+            margin: 10px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .mode-button:hover {
+            background-color: #1976D2;
+        }
+        .symbol-selection {
+            display: none;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .difficulty-selection {
+            display: none;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .difficulty-button {
+            padding: 15px 30px;
+            font-size: 18px;
+            margin: 10px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .difficulty-button:hover {
+            background-color: #1976D2;
+        }
+        .symbol-button {
+            padding: 15px 30px;
+            font-size: 24px;
+            margin: 10px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .symbol-button:hover {
+            background-color: #1976D2;
+        }
+        .symbol-button.X {
+            color: #ff4444;
+        }
+        .symbol-button.O {
+            color: #4444ff;
+        }
+        .thinking {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 24px;
+            color: #666;
+        }
+        .thinking::after {
+            content: '';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60% { content: '...'; }
+            80%, 100% { content: ''; }
+        }
+    </style>
+</head>
+<body>
+    <div class="mode-selection" id="modeSelection">
+        <h1>Tic Tac Toe</h1>
+        <h2>Choose Game Mode</h2>
+        <button class="mode-button" onclick="startGame('friend')">Play with Friend</button>
+        <button class="mode-button" onclick="startGame('computer')">Play with Computer</button>
+    </div>
+
+    <div class="symbol-selection" id="symbolSelection">
+        <h2>Choose Your Symbol</h2>
+        <button class="symbol-button X" onclick="selectSymbol('X')">X</button>
+        <button class="symbol-button O" onclick="selectSymbol('O')">O</button>
+    </div>
+
+    <div class="difficulty-selection" id="difficultySelection">
+        <h2>Choose Difficulty</h2>
+        <button class="difficulty-button" onclick="selectDifficulty('easy')">Easy</button>
+        <button class="difficulty-button" onclick="selectDifficulty('hard')">Hard</button>
+    </div>
+
+    <div class="game-container" id="gameContainer" style="display: none;">
+        <h1>Tic Tac Toe</h1>
+        <div class="status" id="status">Player 1's turn (X)</div>
+        <div class="thinking" id="thinking">Computer is thinking</div>
+        <div class="board" id="board">
+            <div class="cell" data-index="0"></div>
+            <div class="cell" data-index="1"></div>
+            <div class="cell" data-index="2"></div>
+            <div class="cell" data-index="3"></div>
+            <div class="cell" data-index="4"></div>
+            <div class="cell" data-index="5"></div>
+            <div class="cell" data-index="6"></div>
+            <div class="cell" data-index="7"></div>
+            <div class="cell" data-index="8"></div>
+        </div>
+        <button class="reset-button" id="resetButton">Play Again</button>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="winner-modal" id="winnerModal">
+        <h2 id="winnerMessage"></h2>
+        <button class="reset-button" style="display: block;" onclick="closeModalAndReset()">Play Again</button>
+    </div>
+
+    <script>
+        const board = document.getElementById('board');
+        const status = document.getElementById('status');
+        const resetButton = document.getElementById('resetButton');
+        const winnerModal = document.getElementById('winnerModal');
+        const overlay = document.getElementById('overlay');
+        const winnerMessage = document.getElementById('winnerMessage');
+        const modeSelection = document.getElementById('modeSelection');
+        const symbolSelection = document.getElementById('symbolSelection');
+        const difficultySelection = document.getElementById('difficultySelection');
+        const thinking = document.getElementById('thinking');
+        const gameContainer = document.getElementById('gameContainer');
+
+        let gameState = {
+            board: ['', '', '', '', '', '', '', '', ''],
+            current_player: 'X',
+            game_over: false,
+            winner: null,
+            game_mode: null,
+            player_symbol: null,
+            difficulty: null
+        };
+
+        let isComputerMoving = false;
+
+        function startGame(mode) {
+            gameState.game_mode = mode;
+            if (mode === 'friend') {
+                gameState.player_symbol = 'X';
+                modeSelection.style.display = 'none';
+                gameContainer.style.display = 'block';
+            } else {
+                modeSelection.style.display = 'none';
+                symbolSelection.style.display = 'block';
+            }
+        }
+
+        function selectSymbol(symbol) {
+            gameState.player_symbol = symbol;
+            gameState.current_player = 'X';
+            symbolSelection.style.display = 'none';
+            difficultySelection.style.display = 'block';
+        }
+
+        function selectDifficulty(difficulty) {
+            gameState.difficulty = difficulty;
+            difficultySelection.style.display = 'none';
+            gameContainer.style.display = 'block';
+            if (gameState.game_mode === 'computer' && gameState.player_symbol === 'O') {
+                makeComputerMove();
+            }
+        }
+
+        function celebrateWinner() {
+            const duration = 3 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1001 };
+
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                const particleCount = 50 * (timeLeft / duration);
+                confetti({
+                    ...defaults,
+                    particleCount,
+                    origin: { x: randomInRange(0.1, 0.9), y: Math.random() - 0.2 }
+                });
+            }, 250);
+        }
+
+        function updateBoard() {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach((cell, index) => {
+                cell.textContent = gameState.board[index];
+                cell.className = 'cell ' + gameState.board[index];
+            });
+        }
+
+        function showWinnerModal(message) {
+            winnerMessage.textContent = message;
+            winnerModal.style.display = 'block';
+            overlay.style.display = 'block';
+            celebrateWinner();
+        }
+
+        function closeModalAndReset() {
+            winnerModal.style.display = 'none';
+            overlay.style.display = 'none';
+            resetGame();
+        }
+
+        function updateStatus() {
+            if (gameState.game_over) {
+                if (gameState.winner === 'tie') {
+                    status.textContent = 'Game Tie!';
+                    resetButton.style.display = 'block';
+                } else {
+                    const player = gameState.winner === 'X' ? 'Player 1' : 'Player 2';
+                    if (gameState.game_mode === 'computer') {
+                        const winner = gameState.winner === gameState.player_symbol ? 'You' : 'Computer';
+                        status.textContent = `${winner} won!`;
+                        showWinnerModal(`🎉 ${winner} Wins! 🎉`);
+                    } else {
+                        status.textContent = `${player} won!`;
+                        showWinnerModal(`🎉 ${player} Wins! 🎉`);
+                    }
+                }
+            } else {
+                if (gameState.game_mode === 'computer') {
+                    const current = gameState.current_player === gameState.player_symbol ? 'Your' : 'Computer\'s';
+                    status.textContent = `${current} turn (${gameState.current_player})`;
+                } else {
+                    const player = gameState.current_player === 'X' ? 'Player 1' : 'Player 2';
+                    status.textContent = `${player}'s turn (${gameState.current_player})`;
+                }
+            }
+        }
+
+        async function makeMove(position) {
+            if (gameState.board[position] === '' && !gameState.game_over && !isComputerMoving &&
+                (gameState.game_mode === 'friend' || 
+                 (gameState.game_mode === 'computer' && gameState.current_player === gameState.player_symbol))) {
+                const response = await fetch('/make_move', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        position,
+                        game_mode: gameState.game_mode,
+                        player_symbol: gameState.player_symbol,
+                        difficulty: gameState.difficulty
+                    }),
+                });
+                gameState = await response.json();
+                updateBoard();
+                updateStatus();
+                
+                if (gameState.game_mode === 'computer' && !gameState.game_over && gameState.current_player !== gameState.player_symbol) {
+                    thinking.style.display = 'block';
+                    setTimeout(makeComputerMove, 2000);
+                }
+            }
+        }
+
+        async function makeComputerMove() {
+            if (gameState.game_over || isComputerMoving) return;
+            isComputerMoving = true;
+            
+            try {
+                const response = await fetch('/computer_move', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        board: gameState.board,
+                        player_symbol: gameState.player_symbol,
+                        difficulty: gameState.difficulty
+                    }),
+                });
+                gameState = await response.json();
+                updateBoard();
+                updateStatus();
+            } finally {
+                isComputerMoving = false;
+                thinking.style.display = 'none';
+            }
+        }
+
+        async function resetGame() {
+            const response = await fetch('/reset', {
+                method: 'POST',
+            });
+            gameState = await response.json();
+            gameState.game_mode = gameState.game_mode;
+            gameState.player_symbol = gameState.player_symbol;
+            gameState.difficulty = gameState.difficulty;
+            updateBoard();
+            updateStatus();
+            resetButton.style.display = 'none';
+            thinking.style.display = 'none';
+            isComputerMoving = false;
+            
+            if (gameState.game_mode === 'computer' && gameState.player_symbol === 'O') {
+                makeComputerMove();
+            } else if (gameState.game_mode === 'computer' && gameState.player_symbol === 'X') {
+                thinking.style.display = 'block';
+                setTimeout(makeComputerMove, 2000);
+            }
+        }
+
+        board.addEventListener('click', (e) => {
+            const cell = e.target;
+            if (cell.classList.contains('cell')) {
+                const position = parseInt(cell.dataset.index);
+                makeMove(position);
+            }
+        });
+
+        resetButton.addEventListener('click', resetGame);
+    </script>
+</body>
+</html> 
