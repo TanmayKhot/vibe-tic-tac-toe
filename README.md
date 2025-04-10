@@ -1,4 +1,4 @@
-# Vibe coded Tic Tac Toe game with AI Opponent
+# Vibe coded Tic Tac Toe game with AI Opponent (Prompt and review at the end)
 
 A web-based Tic Tac Toe game built with Flask, featuring an AI opponent with adjustable difficulty levels. The game allows players to choose between playing against another human or an AI opponent, with the option to select their preferred symbol (X or O) and difficulty level.
 
